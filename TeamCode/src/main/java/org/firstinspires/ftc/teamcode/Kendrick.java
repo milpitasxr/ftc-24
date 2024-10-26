@@ -8,17 +8,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 @TeleOp
-
 public class Kendrick extends OpMode{
 
-    DcMotor motor1;
-    DcMotor motor2;
-    DcMotor motor3;
-    DcMotor motor4;
+    Drivetrain dt;
+    Horizontal h;
+    Vertical v;
 
     IMU imu;
     YawPitchRollAngles angles;
@@ -42,12 +39,9 @@ public class Kendrick extends OpMode{
 
     @Override
     public void init() {
-        // Initialize motor references
-        motor1 = hardwareMap.dcMotor.get("Q1");
-        motor2 = hardwareMap.dcMotor.get("Q2");
-        motor3 = hardwareMap.dcMotor.get("Q3");
-        motor4 = hardwareMap.dcMotor.get("Q4");
-
+        dt = new Drivetrain();
+        v = new Vertical();
+        h = new Horizontal();
         // Initialize the Inertial Measurement Unit (IMU)
         SetupIMU();
 
@@ -64,19 +58,19 @@ public class Kendrick extends OpMode{
         // Detect gamepad inputs and call movement function
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
-        StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)), gamepad1.right_stick_x);
+        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)), gamepad1.right_stick_x);
 
         // Detect changes using the IMU
         UpdateIMU();
 
         // Perform certain actions (if the correct gamepad buttons are pressed) and log the time since they were last performed
-        changeHAction();
+        h.changeHAction();
         telemetry.addData("Intake Timer", intakeTimer.time());
-        changeVAction();
+        v.changeVAction();
         telemetry.addData("Bucket Timer", bucketTimer.time());
 
         // Call PID function with right joycon inputs
-        PID(Math.atan2(gamepad1.right_stick_y, gamepad1.right_stick_x),heading);
+        //dt.PID(Math.atan2(gamepad1.right_stick_y, gamepad1.right_stick_x),heading);
         //telemetry.addData(PID(0, heading));
     }
 
@@ -105,117 +99,118 @@ public class Kendrick extends OpMode{
         telemetry.addData("Pitch: ", pitch);
     }
 
+    // Commented out old code that we might need later
     // Function to adjust motor powers according to the user inputs (strafing movement)
-    public void StraferChassis(double theta, double power, double turn){
-
-        double sin = Math.sin(theta - Math.PI/4);
-        double cos = Math.cos(theta - Math.PI/4);
-
-        double m = Math.max(Math.abs(sin), Math.abs(cos));
-
-        double leftFront = power * (cos/m) + turn;
-        double rightFront = power * (sin/m) - turn;
-        double leftBack = power * (sin/m) + turn;
-        double rightBack = power * (cos/m) - turn;
-
-        if((power + Math.abs(turn)) > 1){
-            leftFront /= power + turn;
-            rightFront /= power + turn;
-            leftBack /= power + turn;
-            rightBack /= power + turn;
-        }
-
-        motor1.setPower(rightFront * 0.5);
-        motor2.setPower(-leftFront * 0.5);
-        motor3.setPower(-leftBack * 0.5);
-        motor4.setPower(rightBack * 0.5);
-
-        telemetry.addData("theta", theta);
-        telemetry.addData("power", power);
-        telemetry.addData("turn", turn);
-
-    }
+//    public void StraferChassis(double theta, double power, double turn){
+//
+//        double sin = Math.sin(theta - Math.PI/4);
+//        double cos = Math.cos(theta - Math.PI/4);
+//
+//        double m = Math.max(Math.abs(sin), Math.abs(cos));
+//
+//        double leftFront = power * (cos/m) + turn;
+//        double rightFront = power * (sin/m) - turn;
+//        double leftBack = power * (sin/m) + turn;
+//        double rightBack = power * (cos/m) - turn;
+//
+//        if((power + Math.abs(turn)) > 1){
+//            leftFront /= power + turn;
+//            rightFront /= power + turn;
+//            leftBack /= power + turn;
+//            rightBack /= power + turn;
+//        }
+//
+//        motor1.setPower(rightFront * 0.5);
+//        motor2.setPower(-leftFront * 0.5);
+//        motor3.setPower(-leftBack * 0.5);
+//        motor4.setPower(rightBack * 0.5);
+//
+//        telemetry.addData("theta", theta);
+//        telemetry.addData("power", power);
+//        telemetry.addData("turn", turn);
+//
+//    }
 
     // Function for PID turning
-    public double PID(double reference, double state){
-        double error = angleWrap(reference - state);
-        telemetry.addData("Error:",error);
-        integralSum += error * timer.seconds();
-        double derivative = (error- lastError) / timer.seconds();
-        lastError = error;
-
-        timer.reset();
-
-        double turn = (error * Kp) + (derivative * Kp) + (integralSum * Ki) + (reference * Kf);
-        return turn;
-    }
+//    public double PID(double reference, double state){
+//        double error = angleWrap(reference - state);
+//        telemetry.addData("Error:",error);
+//        integralSum += error * timer.seconds();
+//        double derivative = (error- lastError) / timer.seconds();
+//        lastError = error;
+//
+//        timer.reset();
+//
+//        double turn = (error * Kp) + (derivative * Kp) + (integralSum * Ki) + (reference * Kf);
+//        return turn;
+//    }
 
     // Function to calculate angle wrapping
-    public double angleWrap(double radians){
-        while (radians > Math.PI){
-            radians -= 2 * Math.PI;
-        }
-        while (radians < -Math.PI){
-            radians += 2 * Math.PI;
-        }
-        return radians;
-    }
+//    public double angleWrap(double radians){
+//        while (radians > Math.PI){
+//            radians -= 2 * Math.PI;
+//        }
+//        while (radians < -Math.PI){
+//            radians += 2 * Math.PI;
+//        }
+//        return radians;
+//    }
 
     // Function for changing the horizontal action
-    public void changeHAction(){
-        telemetry.addData("INTAKE STATUS", intakeAction);
-        if (gamepad1.a && gamepad1.dpad_right && intakeAction != "RETRACT"){
-            intakeAction = "RETRACT";
-            intakeTimer.reset();
-        }
-        else if (gamepad1.a && gamepad1.dpad_left && intakeAction != "EXTEND"){
-            intakeAction = "EXTEND";
-            intakeTimer.reset();
-        }
-        else if (gamepad1.a && gamepad1.dpad_up && intakeAction != "HALF"){
-            intakeAction = "HALF";
-            intakeTimer.reset();
-        }
-        else if (gamepad1.a && gamepad1.dpad_down && intakeAction != "ZERO"){
-            intakeAction = "ZERO";
-            intakeTimer.reset();
-        }
-    }
+//    public void changeHAction(){
+//        telemetry.addData("INTAKE STATUS", intakeAction);
+//        if (gamepad1.a && gamepad1.dpad_right && intakeAction != "RETRACT"){
+//            intakeAction = "RETRACT";
+//            intakeTimer.reset();
+//        }
+//        else if (gamepad1.a && gamepad1.dpad_left && intakeAction != "EXTEND"){
+//            intakeAction = "EXTEND";
+//            intakeTimer.reset();
+//        }
+//        else if (gamepad1.a && gamepad1.dpad_up && intakeAction != "HALF"){
+//            intakeAction = "HALF";
+//            intakeTimer.reset();
+//        }
+//        else if (gamepad1.a && gamepad1.dpad_down && intakeAction != "ZERO"){
+//            intakeAction = "ZERO";
+//            intakeTimer.reset();
+//        }
+//    }
 
     // Function for changing the vertical action
-    public void changeVAction(){
-        telemetry.addData("BUCKET STATUS", bucketAction);
-        if (gamepad1.b && gamepad1.dpad_right && bucketAction != "RETRACT"){
-            bucketAction = "RETRACT";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.b && gamepad1.dpad_left && bucketAction != "LOWER"){
-            bucketAction = "LOWER";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.b && gamepad1.dpad_up && bucketAction != "UPPER"){
-            bucketAction = "UPPER";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.b && gamepad1.dpad_down && bucketAction != "DOWN"){
-            bucketAction = "DOWN";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.y && gamepad1.dpad_up && bucketAction != "TOP"){
-            bucketAction = "TOP";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.y && gamepad1.dpad_left && bucketAction != "MID"){
-            bucketAction = "MID";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.y && gamepad1.dpad_down && bucketAction != "PICK"){
-            bucketAction = "PICK";
-            bucketTimer.reset();
-        }
-        else if (gamepad1.y && gamepad1.dpad_right && bucketAction != "PLACE"){
-            bucketAction = "PLACE";
-            bucketTimer.reset();
-        }
-    }
+//    public void changeVAction(){
+//        telemetry.addData("BUCKET STATUS", bucketAction);
+//        if (gamepad1.b && gamepad1.dpad_right && bucketAction != "RETRACT"){
+//            bucketAction = "RETRACT";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.b && gamepad1.dpad_left && bucketAction != "LOWER"){
+//            bucketAction = "LOWER";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.b && gamepad1.dpad_up && bucketAction != "UPPER"){
+//            bucketAction = "UPPER";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.b && gamepad1.dpad_down && bucketAction != "DOWN"){
+//            bucketAction = "DOWN";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.y && gamepad1.dpad_up && bucketAction != "TOP"){
+//            bucketAction = "TOP";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.y && gamepad1.dpad_left && bucketAction != "MID"){
+//            bucketAction = "MID";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.y && gamepad1.dpad_down && bucketAction != "PICK"){
+//            bucketAction = "PICK";
+//            bucketTimer.reset();
+//        }
+//        else if (gamepad1.y && gamepad1.dpad_right && bucketAction != "PLACE"){
+//            bucketAction = "PLACE";
+//            bucketTimer.reset();
+//        }
+//    }
 }
