@@ -58,7 +58,8 @@ public class Kendrick extends OpMode{
         // Detect gamepad inputs and call movement function
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
-        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)), gamepad1.right_stick_x);
+//        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)), gamepad1.right_stick_x);
+        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)));
 
         // Detect changes using the IMU
         UpdateIMU();

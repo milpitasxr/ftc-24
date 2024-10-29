@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -34,8 +37,11 @@ public class Drivetrain {
         motor4 = hardwareMap.dcMotor.get("Q4");
 
         timer = new ElapsedTime();
+
+        SetupIMU();
     }
-    public void StraferChassis(double theta, double power, double turn){
+    public void StraferChassis(double theta, double power){
+        double turn = IMUTurning();
 
         double sin = Math.sin(theta - Math.PI/4);
         double cos = Math.cos(theta - Math.PI/4);
@@ -64,6 +70,31 @@ public class Drivetrain {
 //        telemetry.addData("turn", turn);
 
     }
+
+    public void SetupIMU(){
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+                )
+        );
+        imu.initialize(parameters);
+    }
+
+    public double IMUTurning(){
+//      Current rotation of the robot
+        angles = imu.getRobotYawPitchRollAngles();
+        heading = angles.getYaw() * (Math.PI/180);
+//      Input on the gamepad's right joystick
+        double x = gamepad1.right_stick_x;
+        double y = gamepad1.right_stick_y;
+
+        double right_stick_angle = Math.atan2(y,x);
+
+        return PID(right_stick_angle, heading);
+    }
+
     public double PID(double reference, double state){
         double error = angleWrap(reference - state);
 //        telemetry.addData("Error:",error);
@@ -86,5 +117,4 @@ public class Drivetrain {
         }
         return radians;
     }
-
 }
