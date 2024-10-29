@@ -2,16 +2,18 @@
 package org.firstinspires.ftc.teamcode;
 
 // Imports from FTC package
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 @TeleOp
-public class Kendrick extends OpMode{
+public class Kendrick extends OpMode {
 
     Drivetrain dt;
     Horizontal h;
@@ -54,12 +56,12 @@ public class Kendrick extends OpMode{
 
     // Main loop
     @Override
-    public void loop(){
+    public void loop() {
         // Detect gamepad inputs and call movement function
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
 //        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)), gamepad1.right_stick_x);
-        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)));
+        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x * x) + (y * y)));
 
         // Detect changes using the IMU
         UpdateIMU();
@@ -76,7 +78,7 @@ public class Kendrick extends OpMode{
     }
 
     // Function to initialize the IMU
-    public void SetupIMU(){
+    public void SetupIMU() {
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
@@ -88,10 +90,10 @@ public class Kendrick extends OpMode{
     }
 
     // Function to update data from the IMU
-    public void UpdateIMU(){
+    public void UpdateIMU() {
         angles = imu.getRobotYawPitchRollAngles();
 
-        heading = angles.getYaw() * (Math.PI/180);
+        heading = angles.getYaw() * (Math.PI / 180);
         roll = angles.getRoll();
         pitch = angles.getPitch();
 
@@ -100,118 +102,4 @@ public class Kendrick extends OpMode{
         telemetry.addData("Pitch: ", pitch);
     }
 
-    // Commented out old code that we might need later
-    // Function to adjust motor powers according to the user inputs (strafing movement)
-//    public void StraferChassis(double theta, double power, double turn){
-//
-//        double sin = Math.sin(theta - Math.PI/4);
-//        double cos = Math.cos(theta - Math.PI/4);
-//
-//        double m = Math.max(Math.abs(sin), Math.abs(cos));
-//
-//        double leftFront = power * (cos/m) + turn;
-//        double rightFront = power * (sin/m) - turn;
-//        double leftBack = power * (sin/m) + turn;
-//        double rightBack = power * (cos/m) - turn;
-//
-//        if((power + Math.abs(turn)) > 1){
-//            leftFront /= power + turn;
-//            rightFront /= power + turn;
-//            leftBack /= power + turn;
-//            rightBack /= power + turn;
-//        }
-//
-//        motor1.setPower(rightFront * 0.5);
-//        motor2.setPower(-leftFront * 0.5);
-//        motor3.setPower(-leftBack * 0.5);
-//        motor4.setPower(rightBack * 0.5);
-//
-//        telemetry.addData("theta", theta);
-//        telemetry.addData("power", power);
-//        telemetry.addData("turn", turn);
-//
-//    }
-
-    // Function for PID turning
-//    public double PID(double reference, double state){
-//        double error = angleWrap(reference - state);
-//        telemetry.addData("Error:",error);
-//        integralSum += error * timer.seconds();
-//        double derivative = (error- lastError) / timer.seconds();
-//        lastError = error;
-//
-//        timer.reset();
-//
-//        double turn = (error * Kp) + (derivative * Kp) + (integralSum * Ki) + (reference * Kf);
-//        return turn;
-//    }
-
-    // Function to calculate angle wrapping
-//    public double angleWrap(double radians){
-//        while (radians > Math.PI){
-//            radians -= 2 * Math.PI;
-//        }
-//        while (radians < -Math.PI){
-//            radians += 2 * Math.PI;
-//        }
-//        return radians;
-//    }
-
-    // Function for changing the horizontal action
-//    public void changeHAction(){
-//        telemetry.addData("INTAKE STATUS", intakeAction);
-//        if (gamepad1.a && gamepad1.dpad_right && intakeAction != "RETRACT"){
-//            intakeAction = "RETRACT";
-//            intakeTimer.reset();
-//        }
-//        else if (gamepad1.a && gamepad1.dpad_left && intakeAction != "EXTEND"){
-//            intakeAction = "EXTEND";
-//            intakeTimer.reset();
-//        }
-//        else if (gamepad1.a && gamepad1.dpad_up && intakeAction != "HALF"){
-//            intakeAction = "HALF";
-//            intakeTimer.reset();
-//        }
-//        else if (gamepad1.a && gamepad1.dpad_down && intakeAction != "ZERO"){
-//            intakeAction = "ZERO";
-//            intakeTimer.reset();
-//        }
-//    }
-
-    // Function for changing the vertical action
-//    public void changeVAction(){
-//        telemetry.addData("BUCKET STATUS", bucketAction);
-//        if (gamepad1.b && gamepad1.dpad_right && bucketAction != "RETRACT"){
-//            bucketAction = "RETRACT";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.b && gamepad1.dpad_left && bucketAction != "LOWER"){
-//            bucketAction = "LOWER";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.b && gamepad1.dpad_up && bucketAction != "UPPER"){
-//            bucketAction = "UPPER";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.b && gamepad1.dpad_down && bucketAction != "DOWN"){
-//            bucketAction = "DOWN";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.y && gamepad1.dpad_up && bucketAction != "TOP"){
-//            bucketAction = "TOP";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.y && gamepad1.dpad_left && bucketAction != "MID"){
-//            bucketAction = "MID";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.y && gamepad1.dpad_down && bucketAction != "PICK"){
-//            bucketAction = "PICK";
-//            bucketTimer.reset();
-//        }
-//        else if (gamepad1.y && gamepad1.dpad_right && bucketAction != "PLACE"){
-//            bucketAction = "PLACE";
-//            bucketTimer.reset();
-//        }
-//    }
 }
