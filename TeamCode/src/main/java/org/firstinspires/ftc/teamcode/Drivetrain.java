@@ -2,8 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -15,6 +17,8 @@ public class Drivetrain {
     DcMotor motor2;
     DcMotor motor3;
     DcMotor motor4;
+
+    OpMode opmode;
 
     IMU imu;
     YawPitchRollAngles angles;
@@ -30,24 +34,26 @@ public class Drivetrain {
 
     ElapsedTime timer;
 
-    public Drivetrain(){
-        motor1 = hardwareMap.dcMotor.get("Q1");
-        motor2 = hardwareMap.dcMotor.get("Q2");
-        motor3 = hardwareMap.dcMotor.get("Q3");
-        motor4 = hardwareMap.dcMotor.get("Q4");
+    public Drivetrain(OpMode op){
+        opmode = op;
+        motor1 = opmode.hardwareMap.get(DcMotor.class, "Q1");
+        motor2 = opmode.hardwareMap.get(DcMotor.class, "Q2");
+        motor3 = opmode.hardwareMap.get(DcMotor.class, "Q3");
+        motor4 = opmode.hardwareMap.get(DcMotor.class, "Q4");
 
         timer = new ElapsedTime();
 
-        SetupIMU();
+        //SetupIMU();
     }
     public void StraferChassis(double theta, double power){
         double turn = IMUTurning();
+        //double turn = 0;
 
         double sin = Math.sin(theta - Math.PI/4);
         double cos = Math.cos(theta - Math.PI/4);
 
         double m = Math.max(Math.abs(sin), Math.abs(cos));
-
+        opmode.telemetry.addData("turn", turn);
         double leftFront = power * (cos/m) + turn;
         double rightFront = power * (sin/m) - turn;
         double leftBack = power * (sin/m) + turn;
@@ -97,13 +103,13 @@ public class Drivetrain {
 
     public double PID(double reference, double state){
         double error = angleWrap(reference - state);
+        opmode.telemetry.addData("error", error);
 //        telemetry.addData("Error:",error);
         integralSum += error * timer.seconds();
         double derivative = (error- lastError) / timer.seconds();
         lastError = error;
 
         timer.reset();
-
         double turn;
         turn = (error * Kp) + (derivative * Kp) + (integralSum * Ki) + (reference * Kf);
         return turn;

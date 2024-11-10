@@ -2,6 +2,8 @@
 package org.firstinspires.ftc.teamcode;
 
 // Imports from FTC package
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -39,7 +41,8 @@ public class Kendrick extends OpMode{
 
     @Override
     public void init() {
-        dt = new Drivetrain();
+
+        dt = new Drivetrain(this);
         v = new Vertical();
         h = new Horizontal();
         // Initialize the Inertial Measurement Unit (IMU)
@@ -58,16 +61,15 @@ public class Kendrick extends OpMode{
         // Detect gamepad inputs and call movement function
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
-//        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)), gamepad1.right_stick_x);
         dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)));
 
         // Detect changes using the IMU
         UpdateIMU();
 
         // Perform certain actions (if the correct gamepad buttons are pressed) and log the time since they were last performed
-        h.changeHAction();
+        //h.changeHAction();
         telemetry.addData("Intake Timer", intakeTimer.time());
-        v.changeVAction();
+        //v.changeVAction();
         telemetry.addData("Bucket Timer", bucketTimer.time());
 
         // Call PID function with right joycon inputs
@@ -96,8 +98,8 @@ public class Kendrick extends OpMode{
         pitch = angles.getPitch();
 
         telemetry.addData("Heading: ", heading);
-        telemetry.addData("Roll: ", roll);
-        telemetry.addData("Pitch: ", pitch);
+//        telemetry.addData("Roll: ", roll);
+//        telemetry.addData("Pitch: ", pitch);
     }
 
     // Commented out old code that we might need later
