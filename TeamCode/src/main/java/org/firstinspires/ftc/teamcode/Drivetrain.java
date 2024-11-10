@@ -43,11 +43,11 @@ public class Drivetrain {
 
         timer = new ElapsedTime();
 
-        //SetupIMU();
+        SetupIMU();
     }
     public void StraferChassis(double theta, double power){
-        double turn = IMUTurning();
-        //double turn = 0;
+        //double turn = IMUTurning();
+        double turn = 0;
 
         double sin = Math.sin(theta - Math.PI/4);
         double cos = Math.cos(theta - Math.PI/4);
@@ -78,7 +78,7 @@ public class Drivetrain {
     }
 
     public void SetupIMU(){
-        imu = hardwareMap.get(IMU.class, "imu");
+        imu = opmode.hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
