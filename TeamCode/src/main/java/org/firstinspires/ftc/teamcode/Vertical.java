@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode;
+
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
@@ -19,7 +20,7 @@ public class Vertical {
     Servo verticalLeft;
     Servo verticalRight;
     Servo claw;
-    Servo rotate;
+    Servo clawrotate;
     DcMotor leftLimit;
     DcMotor rightLift;
     ElapsedTime vTimer;
@@ -30,16 +31,16 @@ public class Vertical {
         vTimer = new ElapsedTime();
         vAction = "RETRACT";
 
-        armLeft =  opmode.hardwareMap.get(Servo.class, "al");
-        armRight =  opmode.hardwareMap.get(Servo.class, "ar");
-        verticalLeft =  opmode.hardwareMap.get(Servo.class, "vl");
-        verticalRight =   opmode.hardwareMap.get(Servo.class, "vr");
-        claw =  opmode.hardwareMap.get(Servo.class, "claw");
-        rotate =  opmode.hardwareMap.get(Servo.class, "rotate");
+        armLeft = opmode.hardwareMap.get(Servo.class, "al");
+        armRight = opmode.hardwareMap.get(Servo.class, "ar");
+        verticalLeft = opmode.hardwareMap.get(Servo.class, "vl");
+        verticalRight = opmode.hardwareMap.get(Servo.class, "vr");
+        claw = opmode.hardwareMap.get(Servo.class, "claw");
+        clawrotate = opmode.hardwareMap.get(Servo.class, "rotate");
 
         //map this properly:
-        rightLift = opmode.hardwareMap.get(DcMotor.class, "vMotor1");
-        leftLimit = opmode.hardwareMap.get(DcMotor.class, "rightLift");
+//        rightLift = opmode.hardwareMap.get(DcMotor.class, "vMotor1");
+//        leftLimit = opmode.hardwareMap.get(DcMotor.class, "rightLift");
 
         rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -47,50 +48,96 @@ public class Vertical {
         rightLift.setDirection(DcMotor.Direction.FORWARD);
     }
 
-    public void loop(){
+    public void loop() {
         changeVAction();
-        if(vAction=="RETRACT"){
+        //NORMAL ACTIONS
+        if (vAction == "RETRACT") {
             retract();
         }
-        if(vAction=="UPPER"){
-            upper();
+        if (vAction == "UPPER") {
+            upperBucket();
         }
-        if(vAction=="LOWER"){
-            lower();
+        if (vAction == "LOWER") {
+            lowerBucket();
         }
-        if(vAction=="DOWN"){
-            down();
-        }
-        if(vAction=="TOP"){
+        //SPECIMEN
+        if (vAction == "TOP") {
             top();
         }
+        if (vAction == "DOWN") {
+            down();
+        }
+        if (vAction == "PICK") {
+            pickSpecimen();
+        }
+        if (vAction == "PLACE") {
+            // WIP
+        }
     }
 
-    private void retract(){
+    private void retract() {
+        claw.setPosition(1);
+
         rightLift.setPower(-0.2);
         rightLift.setTargetPosition(0);
-        opmode.telemetry.addData("ticks", rightLift.getCurrentPosition());
     }
 
-    private void upper(){
-        rightLift.setPower(0.2);
-        rightLift.setTargetPosition((int) TICKS_PER_REVOLUTION);
-        opmode.telemetry.addData("ticks", rightLift.getCurrentPosition());
+    private void upperBucket() {
+        claw.setPosition(0);
+
+        if (vTimer.milliseconds() >= 10) {
+            rightLift.setPower(0.2);
+            rightLift.setTargetPosition((int) TICKS_PER_REVOLUTION * 8);
+        }
+        if (vTimer.milliseconds() >= 100) {
+            armLeft.setPosition(1);
+            armLeft.setPosition(1);
+        } else {
+            armLeft.setPosition(1);
+            armLeft.setPosition(1);
+        }
     }
 
-    private void lower(){
+    private void lowerBucket() {
         // WIP
+
+        claw.setPosition(0);
+
+        if (vTimer.milliseconds() >= 10) {
+            rightLift.setPower(-0.2);
+            rightLift.setTargetPosition((int) TICKS_PER_REVOLUTION * 4);
+        }
+        if (vTimer.milliseconds() >= 100) {
+            armLeft.setPosition(1);
+            armLeft.setPosition(1);
+        } else {
+            armLeft.setPosition(1);
+            armLeft.setPosition(1);
+        }
     }
 
-    private void down(){
+    private void top() {
         // WIP
+        armLeft.setPosition(0.5);
+        armRight.setPosition(0.5);
+        clawrotate.setPosition(0.5);
     }
 
-    private void top(){
+    private void down() {
+        armLeft.setPosition(0.1);
+        armRight.setPosition(0.1);
+        clawrotate.setPosition(0.5);
+    }
+
+    private void pickSpecimen() {
         // WIP
+        armLeft.setPosition(1);
+        armRight.setPosition(1);
+        claw.setPosition(1);
     }
 
     public void changeVAction() {
+        //NORMAL ACTIONS
         if (gamepad1.b && gamepad1.dpad_right && vAction != "RETRACT") {
             vAction = "RETRACT";
             vTimer.reset();
@@ -100,14 +147,14 @@ public class Vertical {
         } else if (gamepad1.b && gamepad1.dpad_up && vAction != "UPPER") {
             vAction = "UPPER";
             vTimer.reset();
-        } else if (gamepad1.b && gamepad1.dpad_down && vAction != "DOWN") {
-            vAction = "DOWN";
-            vTimer.reset();
-        } else if (gamepad1.y && gamepad1.dpad_up && vAction != "TOP") {
+        }
+
+        //SPECIMEN ACTIONS
+        else if (gamepad1.y && gamepad1.dpad_up && vAction != "TOP") {
             vAction = "TOP";
             vTimer.reset();
-        } else if (gamepad1.y && gamepad1.dpad_left && vAction != "MID") {
-            vAction = "MID";
+        } else if (gamepad1.y && gamepad1.dpad_left && vAction != "DOWN") {
+            vAction = "DOWN";
             vTimer.reset();
         } else if (gamepad1.y && gamepad1.dpad_down && vAction != "PICK") {
             vAction = "PICK";
