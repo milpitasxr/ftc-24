@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+//import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,11 +18,9 @@ public class Vertical {
 
     Servo armLeft;
     Servo armRight;
-    Servo verticalLeft;
-    Servo verticalRight;
     Servo claw;
     Servo clawrotate;
-    DcMotor leftLimit;
+    DcMotor leftLift;
     DcMotor rightLift;
     ElapsedTime vTimer;
     String vAction;
@@ -31,21 +30,21 @@ public class Vertical {
         vTimer = new ElapsedTime();
         vAction = "RETRACT";
 
-        armLeft = opmode.hardwareMap.get(Servo.class, "al");
-        armRight = opmode.hardwareMap.get(Servo.class, "ar");
-        verticalLeft = opmode.hardwareMap.get(Servo.class, "vl");
-        verticalRight = opmode.hardwareMap.get(Servo.class, "vr");
-        claw = opmode.hardwareMap.get(Servo.class, "claw");
-        clawrotate = opmode.hardwareMap.get(Servo.class, "rotate");
+        armLeft = opmode.hardwareMap.get(Servo.class, "a1");
+        armRight = opmode.hardwareMap.get(Servo.class, "a2");
+        leftLift = opmode.hardwareMap.dcMotor.get("l1");
+        rightLift = opmode.hardwareMap.dcMotor.get("l2");
+        claw = opmode.hardwareMap.get(Servo.class, "c1");
+        clawrotate = opmode.hardwareMap.get(Servo.class, "c2");
 
         //map this properly:
 //        rightLift = opmode.hardwareMap.get(DcMotor.class, "vMotor1");
 //        leftLimit = opmode.hardwareMap.get(DcMotor.class, "rightLift");
 
-        rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        /*rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightLift.setDirection(DcMotor.Direction.FORWARD);
+        //rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightLift.setDirection(DcMotor.Direction.FORWARD);*/
     }
 
     public void loop() {
@@ -98,6 +97,7 @@ public class Vertical {
         }
     }
 
+
     private void lowerBucket() {
         // WIP
 
@@ -138,6 +138,7 @@ public class Vertical {
 
     public void changeVAction() {
         //NORMAL ACTIONS
+        Gamepad gamepad1 = opmode.gamepad1;
         if (gamepad1.b && gamepad1.dpad_right && vAction != "RETRACT") {
             vAction = "RETRACT";
             vTimer.reset();

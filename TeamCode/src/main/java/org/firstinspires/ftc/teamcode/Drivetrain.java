@@ -29,7 +29,7 @@ public class Drivetrain {
     double pitch;
     double integralSum = 0;
     double lastError = 0;
-    double Kp = 1;
+    double Kp = 0.0;
     double Ki = 0;
     double Kf = 0;
 
@@ -38,10 +38,10 @@ public class Drivetrain {
     public Drivetrain(OpMode op) {
         opmode = op;
 
-        motor1 = hardwareMap.dcMotor.get("Q1");
-        motor2 = hardwareMap.dcMotor.get("Q2");
-        motor3 = hardwareMap.dcMotor.get("Q3");
-        motor4 = hardwareMap.dcMotor.get("Q4");
+        motor1 = opmode.hardwareMap.dcMotor.get("q1");
+        motor2 = opmode.hardwareMap.dcMotor.get("q2");
+        motor3 = opmode.hardwareMap.dcMotor.get("q3");
+        motor4 = opmode.hardwareMap.dcMotor.get("q4");
 
         timer = new ElapsedTime();
 
@@ -50,7 +50,8 @@ public class Drivetrain {
 
     public void StraferChassis(double theta, double power) {
         double turn = IMUTurning();
-
+        opmode.telemetry.addData("turn", turn);
+        //double turn = 0;
         double sin = Math.sin(theta - Math.PI / 4);
         double cos = Math.cos(theta - Math.PI / 4);
 
@@ -80,7 +81,7 @@ public class Drivetrain {
     }
 
     public void SetupIMU() {
-        imu = hardwareMap.get(IMU.class, "imu");
+        imu = opmode.hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -95,16 +96,23 @@ public class Drivetrain {
         angles = imu.getRobotYawPitchRollAngles();
         heading = angles.getYaw() * (Math.PI / 180);
 //      Input on the gamepad's right joystick
-        double x = gamepad1.right_stick_x;
-        double y = gamepad1.right_stick_y;
+        double x = opmode.gamepad1.right_stick_x;
+        double y = opmode.gamepad1.right_stick_y;
 
         double right_stick_angle = Math.atan2(y, x);
 
-        return PID(right_stick_angle, heading);
+        double turn = PID(right_stick_angle, heading);
+        if (turn < -1) {
+            turn = -1;
+        } else if (turn > 1) {
+            turn = 1;
+        }
+        return turn;
     }
 
     public double PID(double reference, double state) {
         double error = angleWrap(reference - state);
+        opmode.telemetry.addData("sldj", error);
 //        telemetry.addData("Error:",error);
         integralSum += error * timer.seconds();
         double derivative = (error - lastError) / timer.seconds();

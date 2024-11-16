@@ -12,6 +12,7 @@ public class Horizontal {
     ElapsedTime intakeTimer;
     String intakeAction;
     OpMode opmode;
+
     Servo rightExtender;
     Servo leftExtender;
     Servo rightRotator;
@@ -23,11 +24,11 @@ public class Horizontal {
         intakeTimer = new ElapsedTime();
         intakeAction = "RETRACT";
 
-        rightExtender = opmode.hardwareMap.get(Servo.class, "right");
-        leftExtender = opmode.hardwareMap.get(Servo.class, "right");
-        rightRotator = opmode.hardwareMap.get(Servo.class, "right");
-        leftRotator = opmode.hardwareMap.get(Servo.class, "right");
-        intake = opmode.hardwareMap.get(DcMotor.class, "right");
+        rightExtender = opmode.hardwareMap.get(Servo.class, "h1");
+        leftExtender = opmode.hardwareMap.get(Servo.class, "h2");
+        rightRotator = opmode.hardwareMap.get(Servo.class, "h3");
+        leftRotator = opmode.hardwareMap.get(Servo.class, "h4");
+        intake = opmode.hardwareMap.dcMotor.get("in");
 
     }
 
