@@ -12,16 +12,16 @@ public class TagDetector{
     AprilTagProcessor tagProcessor;
     VisionPortal visionPortal;
     OpMode opMode;
-    public TagDetector(OpMode op){
+    public TagDetector(OpMode op) {
         opMode = op;
-         tagProcessor = new AprilTagProcessor.Builder()
+        tagProcessor = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagID(true)
                 .setDrawTagOutline(true)
                 .build();
 
-         visionPortal = new VisionPortal.Builder()
+        visionPortal = new VisionPortal.Builder()
                 .addProcessor(tagProcessor)
                 .setCamera(opMode.hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .setCameraResolution(new Size(640, 480))
