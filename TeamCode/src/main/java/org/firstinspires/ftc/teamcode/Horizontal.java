@@ -13,10 +13,12 @@ public class Horizontal {
     String intakeAction;
     OpMode opmode;
 
-    Servo rightExtender;
-    Servo leftExtender;
-    Servo rightRotator;
-    Servo leftRotator;
+    Servo rightExtender1;
+    Servo rightExtender2;
+    Servo leftExtender1;
+    Servo leftExtender2;
+    Servo leftIntake;
+    Servo rightIntake;
     DcMotor intake;
 
     public Horizontal(OpMode op) {
@@ -24,11 +26,13 @@ public class Horizontal {
         intakeTimer = new ElapsedTime();
         intakeAction = "RETRACT";
 
-        rightExtender = opmode.hardwareMap.get(Servo.class, "h1");
-        leftExtender = opmode.hardwareMap.get(Servo.class, "h2");
-        rightRotator = opmode.hardwareMap.get(Servo.class, "h3");
-        leftRotator = opmode.hardwareMap.get(Servo.class, "h4");
-        intake = opmode.hardwareMap.dcMotor.get("in");
+        rightExtender1 = opmode.hardwareMap.get(Servo.class, "rh1");
+        rightExtender2 = opmode.hardwareMap.get(Servo.class, "rh2");
+        leftExtender1 = opmode.hardwareMap.get(Servo.class, "lh1");
+        leftExtender2 = opmode.hardwareMap.get(Servo.class, "lh2");
+        leftIntake = opmode.hardwareMap.get(Servo.class, "li");
+        rightIntake = opmode.hardwareMap.get(Servo.class, "ri");
+        intake = opmode.hardwareMap.dcMotor.get("intake");
 
     }
 
@@ -50,58 +54,42 @@ public class Horizontal {
     }
 
     private void retract() {
-        rightExtender.setPosition(0);
-        leftExtender.setPosition(0);
-
-        rightRotator.setPosition(0);
-        rightRotator.setPosition(0);
-
-        intake.setPower(0);
+//        WIP
 
     }
 
     private void half() {
-        rightExtender.setPosition(0.5);
-        leftExtender.setPosition(0.5);
-
-        rightRotator.setPosition(1);
-        rightRotator.setPosition(1);
-        intake.setPower(0.8);
+//        WIP
 
     }
 
     private void extend() {
-        rightExtender.setPosition(1);
-        leftExtender.setPosition(1);
-
-        rightRotator.setPosition(1);
-        rightRotator.setPosition(1);
-
-        intake.setPower(0.8);
+//        WIP
 
     }
 
     private void zero() {
-        rightExtender.setPosition(0);
-        leftExtender.setPosition(0);
-
-        rightRotator.setPosition(1);
-        rightRotator.setPosition(1);
-
-        intake.setPower(0.8);
+//        WIP
 
     }
 
     public void changeHAction() {
+        // Bring all the way back
         if (gamepad1.a && gamepad1.dpad_right && intakeAction != "RETRACT") {
             intakeAction = "RETRACT";
             intakeTimer.reset();
+
+            // Extend fully
         } else if (gamepad1.a && gamepad1.dpad_left && intakeAction != "EXTEND") {
             intakeAction = "EXTEND";
             intakeTimer.reset();
+
+            // Extend halfway
         } else if (gamepad1.a && gamepad1.dpad_up && intakeAction != "HALF") {
             intakeAction = "HALF";
             intakeTimer.reset();
+
+            // Tilt down to pick up sample
         } else if (gamepad1.a && gamepad1.dpad_down && intakeAction != "ZERO") {
             intakeAction = "ZERO";
             intakeTimer.reset();

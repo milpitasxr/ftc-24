@@ -32,24 +32,21 @@ public class Vertical {
 
         armLeft = opmode.hardwareMap.get(Servo.class, "a1");
         armRight = opmode.hardwareMap.get(Servo.class, "a2");
-        leftLift = opmode.hardwareMap.dcMotor.get("l1");
-        rightLift = opmode.hardwareMap.dcMotor.get("l2");
-        claw = opmode.hardwareMap.get(Servo.class, "c1");
-        clawrotate = opmode.hardwareMap.get(Servo.class, "c2");
+        leftLift = opmode.hardwareMap.dcMotor.get("lift1");
+        rightLift = opmode.hardwareMap.dcMotor.get("lift2");
+        clawrotate = opmode.hardwareMap.get(Servo.class, "c1");
+        claw = opmode.hardwareMap.get(Servo.class, "c2");
 
-        //map this properly:
-//        rightLift = opmode.hardwareMap.get(DcMotor.class, "vMotor1");
-//        leftLimit = opmode.hardwareMap.get(DcMotor.class, "rightLift");
-
-        /*rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //rightLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightLift.setDirection(DcMotor.Direction.FORWARD);*/
+        leftLift.setDirection(DcMotor.Direction.FORWARD);
+        leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void loop() {
         changeVAction();
-        //NORMAL ACTIONS
+        opmode.telemetry.addData("status", vAction);
+
+        // LIFT ACTIONS
         if (vAction == "RETRACT") {
             retract();
         }
@@ -59,7 +56,8 @@ public class Vertical {
         if (vAction == "LOWER") {
             lowerBucket();
         }
-        //SPECIMEN
+
+        //SPECIMEN ACTIONS
         if (vAction == "TOP") {
             top();
         }
@@ -74,46 +72,52 @@ public class Vertical {
         }
     }
 
-    private void retract() {
-        claw.setPosition(1);
+    // Move lift to a desired position with desired speed
+    public void moveToPosition(DcMotor lift, double position, double speed) {
+        lift.setTargetPosition((int) (TICKS_PER_REVOLUTION * position));
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift.setPower(speed);
 
-        rightLift.setPower(-0.2);
-        rightLift.setTargetPosition(0);
     }
 
-    private void upperBucket() {
-        claw.setPosition(0);
+//    EVERYTHING IS A WORK IN PROGRESS
+
+    private void retract() {
+        claw.setPosition(0.3);
+        clawrotate.setPosition(0.45);
+        armLeft.setPosition(0.99);
+        armRight.setPosition(0.01);
 
         if (vTimer.milliseconds() >= 10) {
-            rightLift.setPower(0.2);
-            rightLift.setTargetPosition((int) TICKS_PER_REVOLUTION * 8);
+            leftLift.setTargetPosition(0);
+            leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            leftLift.setPower(0.9);
+
+            clawrotate.setPosition(0);
         }
-        if (vTimer.milliseconds() >= 100) {
-            armLeft.setPosition(1);
-            armLeft.setPosition(1);
-        } else {
-            armLeft.setPosition(1);
-            armLeft.setPosition(1);
+
+        if (vTimer.milliseconds() >= 20) {
+            armLeft.setPosition(0);
         }
     }
 
+    // Need to add something so when a button is pressed the sample is released
+    private void upperBucket() {
+        claw.setPosition(1);
+
+        if (vTimer.milliseconds() >= 50) {
+            moveToPosition(leftLift, 6, 0.9);
+        }
+
+        if (vTimer.milliseconds() >= 60) {
+            armLeft.setPosition(0.3);
+            // armRight.setPosition(0.5);
+            clawrotate.setPosition(0);
+        }
+    }
 
     private void lowerBucket() {
         // WIP
-
-        claw.setPosition(0);
-
-        if (vTimer.milliseconds() >= 10) {
-            rightLift.setPower(-0.2);
-            rightLift.setTargetPosition((int) TICKS_PER_REVOLUTION * 4);
-        }
-        if (vTimer.milliseconds() >= 100) {
-            armLeft.setPosition(1);
-            armLeft.setPosition(1);
-        } else {
-            armLeft.setPosition(1);
-            armLeft.setPosition(1);
-        }
     }
 
     private void top() {
@@ -130,37 +134,36 @@ public class Vertical {
     }
 
     private void pickSpecimen() {
-        // WIP
-        armLeft.setPosition(1);
         armRight.setPosition(1);
-        claw.setPosition(1);
+        claw.setPosition(0.3);
+
+        // Need to add something so when a button is pressed it actually picks the specimen up
     }
 
     public void changeVAction() {
-        //NORMAL ACTIONS
-        Gamepad gamepad1 = opmode.gamepad1;
-        if (gamepad1.b && gamepad1.dpad_right && vAction != "RETRACT") {
+        // LIFT ACTIONS
+        if (opmode.gamepad1.b && opmode.gamepad1.dpad_right && vAction != "RETRACT") {
             vAction = "RETRACT";
             vTimer.reset();
-        } else if (gamepad1.b && gamepad1.dpad_left && vAction != "LOWER") {
+        } else if (opmode.gamepad1.b && opmode.gamepad1.dpad_left && vAction != "LOWER") {
             vAction = "LOWER";
             vTimer.reset();
-        } else if (gamepad1.b && gamepad1.dpad_up && vAction != "UPPER") {
+        } else if (opmode.gamepad1.b && opmode.gamepad1.dpad_up && vAction != "UPPER") {
             vAction = "UPPER";
             vTimer.reset();
         }
 
-        //SPECIMEN ACTIONS
-        else if (gamepad1.y && gamepad1.dpad_up && vAction != "TOP") {
+        // SPECIMEN ACTIONS
+        else if (opmode.gamepad1.y && opmode.gamepad1.dpad_up && vAction != "TOP") {
             vAction = "TOP";
             vTimer.reset();
-        } else if (gamepad1.y && gamepad1.dpad_left && vAction != "DOWN") {
+        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_left && vAction != "DOWN") {
             vAction = "DOWN";
             vTimer.reset();
-        } else if (gamepad1.y && gamepad1.dpad_down && vAction != "PICK") {
+        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_down && vAction != "PICK") {
             vAction = "PICK";
             vTimer.reset();
-        } else if (gamepad1.y && gamepad1.dpad_right && vAction != "PLACE") {
+        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_right && vAction != "PLACE") {
             vAction = "PLACE";
             vTimer.reset();
         }

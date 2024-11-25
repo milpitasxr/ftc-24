@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,7 +7,6 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-//import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Drivetrain {
     DcMotor motor1;
@@ -102,6 +97,7 @@ public class Drivetrain {
         double right_stick_angle = Math.atan2(y, x);
 
         double turn = PID(right_stick_angle, heading);
+        opmode.telemetry.addData("firstturn", heading);
         if (turn < -1) {
             turn = -1;
         } else if (turn > 1) {

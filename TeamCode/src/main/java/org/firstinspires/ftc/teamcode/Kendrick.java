@@ -2,6 +2,7 @@
 package org.firstinspires.ftc.teamcode;
 
 // Imports from FTC package
+
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -10,10 +11,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 @TeleOp
-public class Kendrick extends OpMode{
+public class Kendrick extends OpMode {
 
     Drivetrain dt;
     Horizontal h;
@@ -44,7 +46,7 @@ public class Kendrick extends OpMode{
 
         dt = new Drivetrain(this);
         v = new Vertical(this);
-        h = new Horizontal(this);
+        //h = new Horizontal(this);
 
         // Create timers for different actions
         timer = new ElapsedTime();
@@ -54,16 +56,14 @@ public class Kendrick extends OpMode{
 
     // Main loop
     @Override
-    public void loop(){
+    public void loop() {
         // Detect gamepad inputs and call movement function
+
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
-        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x*x)+(y*y)));
+        dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x * x) + (y * y)));
         v.loop();
-
-        telemetry.addData("Intake Timer", intakeTimer.time());
-        //v.changeVAction();
-        telemetry.addData("Bucket Timer", bucketTimer.time());
+        //h.loop();
 
     }
 
