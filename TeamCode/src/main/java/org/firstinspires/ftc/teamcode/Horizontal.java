@@ -54,17 +54,18 @@ public class Horizontal {
     }
 
     private void retract() {
-//        WIP
 
     }
 
     private void half() {
-//        WIP
+        rightIntake.setPosition(0.8);
+        intake.setPower(0.9);
 
     }
 
     private void extend() {
-//        WIP
+        rightIntake.setPosition(0.8);
+        intake.setPower(0.9);
 
     }
 

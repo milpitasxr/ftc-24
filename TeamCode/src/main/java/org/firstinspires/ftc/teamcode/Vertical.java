@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-
 public class Vertical {
 
     double TICKS_PER_REVOLUTION = 751.8;
@@ -24,11 +23,13 @@ public class Vertical {
     DcMotor rightLift;
     ElapsedTime vTimer;
     String vAction;
+    boolean clawStatus;
 
     public Vertical(OpMode op) {
         opmode = op;
         vTimer = new ElapsedTime();
         vAction = "RETRACT";
+        clawStatus = false;
 
         armLeft = opmode.hardwareMap.get(Servo.class, "a1");
         armRight = opmode.hardwareMap.get(Servo.class, "a2");
@@ -77,67 +78,97 @@ public class Vertical {
         lift.setTargetPosition((int) (TICKS_PER_REVOLUTION * position));
         lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         lift.setPower(speed);
-
     }
 
-//    EVERYTHING IS A WORK IN PROGRESS
+    private void retract(){
+        claw.setPosition(0.35);
 
-    private void retract() {
-        claw.setPosition(0.3);
-        clawrotate.setPosition(0.45);
-        armLeft.setPosition(0.99);
-        armRight.setPosition(0.01);
-
-        if (vTimer.milliseconds() >= 10) {
-            leftLift.setTargetPosition(0);
-            leftLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            leftLift.setPower(0.9);
-
-            clawrotate.setPosition(0);
+        if (vTimer.milliseconds() >= 5){
+            armLeft.setPosition(0.98);
+            armRight.setPosition(0.02);
         }
 
-        if (vTimer.milliseconds() >= 20) {
-            armLeft.setPosition(0);
+        if (vTimer.milliseconds() >= 15){
+            clawrotate.setPosition(0.5);
+        }
+
+        if (vTimer.milliseconds() >= 20){
+            moveToPosition(leftLift, 0, 0.9);
         }
     }
 
-    // Need to add something so when a button is pressed the sample is released
-    private void upperBucket() {
-        claw.setPosition(1);
+    private void upperBucket(){
+        if (clawStatus == false){
+            claw.setPosition(1);
+        }
+        else {
+            claw.setPosition(0.3);
+        }
 
-        if (vTimer.milliseconds() >= 50) {
+        if (vTimer.milliseconds() >= 50){
+
             moveToPosition(leftLift, 6, 0.9);
         }
 
-        if (vTimer.milliseconds() >= 60) {
+        if (vTimer.milliseconds() >= 80){
             armLeft.setPosition(0.3);
-            // armRight.setPosition(0.5);
-            clawrotate.setPosition(0);
+            armRight.setPosition(0.7);
+            clawrotate.setPosition(0.25);
+            clawStatus = true;
+        }
+
+        if (opmode.gamepad1.b && opmode.gamepad1.left_bumper){
+            claw.setPosition(0.1);
         }
     }
 
     private void lowerBucket() {
-        // WIP
+        claw.setPosition(1);
+
+        if (vTimer.milliseconds() >= 50){
+            moveToPosition(leftLift, 2, 0.9);
+        }
+
+        if (vTimer.milliseconds() >= 80){
+            armLeft.setPosition(0.3);
+            armRight.setPosition(0.7);
+            clawrotate.setPosition(0.25);
+        }
+
+        if (opmode.gamepad1.b && opmode.gamepad1.left_bumper){
+            claw.setPosition(0.1);
+        }
     }
 
     private void top() {
-        // WIP
-        armLeft.setPosition(0.5);
-        armRight.setPosition(0.5);
-        clawrotate.setPosition(0.5);
+        claw.setPosition(1);
+
+        if (vTimer.milliseconds() >= 40){
+            armLeft.setPosition(0.8);
+            armRight.setPosition(0.2);
+            clawrotate.setPosition(0.25);
+        }
+        // place specimen
     }
 
     private void down() {
-        armLeft.setPosition(0.1);
-        armRight.setPosition(0.1);
-        clawrotate.setPosition(0.5);
+        claw.setPosition(1);
+
+        if (vTimer.milliseconds() >= 40){
+            armLeft.setPosition(0.8);
+            armRight.setPosition(0.2);
+            clawrotate.setPosition(0.25);
+        }
+        // place specimen
     }
 
     private void pickSpecimen() {
         armRight.setPosition(1);
         claw.setPosition(0.3);
+    }
 
-        // Need to add something so when a button is pressed it actually picks the specimen up
+    private void release(){
+
     }
 
     public void changeVAction() {
