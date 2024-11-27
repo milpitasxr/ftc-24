@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,20 +12,26 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
 
 @Autonomous
 public class Calibration extends LinearOpMode {
+
     DcMotor frontRight, frontLeft, backRight, backLeft;
     DcMotor leftEncoder, rightEncoder, middleEncoder;
-    BNO055IMU imu;
+    IMU imu;
 
     ElapsedTime timer = new ElapsedTime();
 
     static final double calibrationSpeed = 0.5;
-    static final double TICKS_PER_REV = 8192;
+    static final double TICKS_PER_REV = 8000;
     static final double WHEEL_DIAMETER = 32/25.4; // Wheel diameter is 32mms, so we have to convert to inches.
     static final double GEAR_RATIO = 1;
     static final double TICKS_PER_INCH = WHEEL_DIAMETER * Math.PI * GEAR_RATIO/TICKS_PER_REV;
@@ -56,9 +63,13 @@ public class Calibration extends LinearOpMode {
 
         resetOdometryEncoders();
 
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
+                )
+        );
         imu.initialize(parameters);
 
         telemetry.addData("Status", "READY TO GO BAYBEE");
@@ -66,14 +77,19 @@ public class Calibration extends LinearOpMode {
 
         waitForStart();
 
+        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+        double heading = angles.getYaw() * (Math.PI / 180);
+
+
+
         // Might have to change what angle we use based on how REV HUB is mounted.
-        while(imu.getAngularOrientation().firstAngle < 90 && opModeIsActive()){
+        while(heading < 90 && opModeIsActive()){
             frontRight.setPower(-calibrationSpeed);
             backRight.setPower(-calibrationSpeed);
             frontLeft.setPower(calibrationSpeed);
             backLeft.setPower(calibrationSpeed);
 
-            if (imu.getAngularOrientation().firstAngle < 60){
+            if (heading < 60){
                 frontRight.setPower(-calibrationSpeed);
                 backRight.setPower(-calibrationSpeed);
                 frontLeft.setPower(calibrationSpeed);
@@ -85,6 +101,8 @@ public class Calibration extends LinearOpMode {
                 frontLeft.setPower(calibrationSpeed / 2);
                 backLeft.setPower(calibrationSpeed / 2);
             }
+            angles = imu.getRobotYawPitchRollAngles();
+            heading = angles.getYaw() * (Math.PI / 180);
 
         }
         frontRight.setPower(0);
@@ -98,11 +116,11 @@ public class Calibration extends LinearOpMode {
             telemetry.update();
         }
 
-        double angle = imu.getAngularOrientation().firstAngle;
+        double angle = heading;
         double encoderDifference = Math.abs(Math.abs(leftEncoder.getCurrentPosition()) - Math.abs(rightEncoder.getCurrentPosition()));
         double sideEncoderTickOffset = encoderDifference / angle;
         double sideWheelSeperation = (180 * sideEncoderTickOffset) / (TICKS_PER_INCH * Math.PI);
-        double middleEncoderTickOffset = middleEncoder.getCurrentPosition() / Math.toRadians(imu.getAngularOrientation().firstAngle);
+        double middleEncoderTickOffset = middleEncoder.getCurrentPosition() / Math.toRadians(heading);
 
         ReadWriteFile.writeFile(sideWheelSeperationFile, String.valueOf(sideWheelSeperation));
         ReadWriteFile.writeFile(middleTickOffsetFile, String.valueOf(middleEncoderTickOffset));
