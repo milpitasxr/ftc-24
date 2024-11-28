@@ -32,15 +32,15 @@ public class Calibration extends LinearOpMode {
 
     static final double calibrationSpeed = 0.5;
     static final double TICKS_PER_REV = 8000;
-    static final double WHEEL_DIAMETER = 32/25.4; // Wheel diameter is 32mms, so we have to convert to inches.
+    static final double WHEEL_DIAMETER = 32 / 25.4; // Wheel diameter is 32mms, so we have to convert to inches.
     static final double GEAR_RATIO = 1;
-    static final double TICKS_PER_INCH = WHEEL_DIAMETER * Math.PI * GEAR_RATIO/TICKS_PER_REV;
+    static final double TICKS_PER_INCH = WHEEL_DIAMETER * Math.PI * GEAR_RATIO / TICKS_PER_REV;
 
     File sideWheelSeperationFile = AppUtil.getInstance().getSettingsFile("sideWheelsSeperation");
     File middleTickOffsetFile = AppUtil.getInstance().getSettingsFile("middleTickOffset");
 
     @Override
-    public void runOpMode(){
+    public void runOpMode() {
         // Initialize  all the motors
         frontLeft = hardwareMap.dcMotor.get("q1");
         frontRight = hardwareMap.dcMotor.get("q4");
@@ -81,21 +81,19 @@ public class Calibration extends LinearOpMode {
         double heading = angles.getYaw() * (Math.PI / 180);
 
 
-
         // Might have to change what angle we use based on how REV HUB is mounted.
-        while(heading < 90 && opModeIsActive()){
+        while (heading < 90 && opModeIsActive()) {
             frontRight.setPower(-calibrationSpeed);
             backRight.setPower(-calibrationSpeed);
             frontLeft.setPower(calibrationSpeed);
             backLeft.setPower(calibrationSpeed);
 
-            if (heading < 60){
+            if (heading < 60) {
                 frontRight.setPower(-calibrationSpeed);
                 backRight.setPower(-calibrationSpeed);
                 frontLeft.setPower(calibrationSpeed);
                 backLeft.setPower(calibrationSpeed);
-            }
-            else {
+            } else {
                 frontRight.setPower(-calibrationSpeed / 2);
                 backRight.setPower(-calibrationSpeed / 2);
                 frontLeft.setPower(calibrationSpeed / 2);
@@ -111,7 +109,7 @@ public class Calibration extends LinearOpMode {
         backLeft.setPower(0);
 
         timer.reset();
-        while(timer.seconds() < 1 && opModeIsActive()){
+        while (timer.seconds() < 1 && opModeIsActive()) {
             telemetry.addData("Status", "Waiting for reset");
             telemetry.update();
         }
@@ -128,7 +126,7 @@ public class Calibration extends LinearOpMode {
 
     }
 
-    void resetOdometryEncoders(){
+    void resetOdometryEncoders() {
         leftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         middleEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
