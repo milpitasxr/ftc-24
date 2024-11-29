@@ -2,9 +2,7 @@
 package org.firstinspires.ftc.teamcode;
 
 // Imports from FTC package
-
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -15,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 @TeleOp
+@Config
 public class Kendrick extends OpMode {
 
     Drivetrain dt;
@@ -46,7 +45,7 @@ public class Kendrick extends OpMode {
 
         dt = new Drivetrain(this);
         v = new Vertical(this);
-        //h = new Horizontal(this);
+        h = new Horizontal(this);
 
         // Create timers for different actions
         timer = new ElapsedTime();
@@ -63,7 +62,7 @@ public class Kendrick extends OpMode {
         double y = -gamepad1.left_stick_y;
         dt.StraferChassis(Math.atan2(y, x), Math.sqrt((x * x) + (y * y)));
         v.loop();
-        //h.loop();
+        h.loop();
 
     }
 

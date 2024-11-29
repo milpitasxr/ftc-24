@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 //import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -41,6 +42,10 @@ public class Vertical {
         leftLift.setDirection(DcMotor.Direction.FORWARD);
         leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        rightLift.setDirection(DcMotor.Direction.REVERSE);
+        rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void loop() {
@@ -89,36 +94,27 @@ public class Vertical {
         }
 
         if (vTimer.milliseconds() >= 15){
-            clawrotate.setPosition(0.5);
+            clawrotate.setPosition(0.48);
         }
 
         if (vTimer.milliseconds() >= 20){
             moveToPosition(leftLift, 0, 0.9);
+            moveToPosition(rightLift, 0, 0.9);
         }
     }
 
     private void upperBucket(){
-        if (clawStatus == false){
-            claw.setPosition(1);
-        }
-        else {
-            claw.setPosition(0.3);
-        }
+        claw.setPosition(1);
 
         if (vTimer.milliseconds() >= 50){
-
             moveToPosition(leftLift, 6, 0.9);
+            moveToPosition(rightLift, 6, 0.9);
         }
 
         if (vTimer.milliseconds() >= 80){
             armLeft.setPosition(0.3);
             armRight.setPosition(0.7);
             clawrotate.setPosition(0.25);
-            clawStatus = true;
-        }
-
-        if (opmode.gamepad1.b && opmode.gamepad1.left_bumper){
-            claw.setPosition(0.1);
         }
     }
 
@@ -127,6 +123,7 @@ public class Vertical {
 
         if (vTimer.milliseconds() >= 50){
             moveToPosition(leftLift, 2, 0.9);
+            moveToPosition(rightLift, 2, 0.9);
         }
 
         if (vTimer.milliseconds() >= 80){

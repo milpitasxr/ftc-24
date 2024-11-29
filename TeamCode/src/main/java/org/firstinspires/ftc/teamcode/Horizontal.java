@@ -32,7 +32,7 @@ public class Horizontal {
         leftExtender2 = opmode.hardwareMap.get(Servo.class, "lh2");
         leftIntake = opmode.hardwareMap.get(Servo.class, "li");
         rightIntake = opmode.hardwareMap.get(Servo.class, "ri");
-        intake = opmode.hardwareMap.dcMotor.get("intake");
+        intake = opmode.hardwareMap.get(DcMotor.class, "intake");
 
     }
 
@@ -54,44 +54,68 @@ public class Horizontal {
     }
 
     private void retract() {
+        rightIntake.setPosition(0.73);
+        //leftIntake.setPosition(0.5);
+
+        intake.setPower(0);
+
+        leftExtender1.setPosition(0);
+        leftExtender2.setPosition(1);
+
+        rightExtender1.setPosition(1-0.733);
+        rightExtender2.setPosition(0.733);
 
     }
 
     private void half() {
-        rightIntake.setPosition(0.8);
-        intake.setPower(0.9);
+
 
     }
 
     private void extend() {
-        rightIntake.setPosition(0.8);
-        intake.setPower(0.9);
+        leftExtender1.setPosition(1);
+        leftExtender2.setPosition(0);
 
+        rightExtender1.setPosition(1);
+        rightExtender2.setPosition(0);
+
+        if (intakeTimer.milliseconds() >= 10){
+            rightIntake.setPosition(0.9);
+            intake.setPower(0.9);
+        }
     }
 
     private void zero() {
 //        WIP
+        leftExtender1.setPosition(0);
+        leftExtender2.setPosition(1);
+
+        rightExtender1.setPosition(1);
+        rightExtender2.setPosition(0);
+
+        rightIntake.setPosition(0.9);
+        intake.setPower(0.9);
 
     }
 
     public void changeHAction() {
         // Bring all the way back
-        if (gamepad1.a && gamepad1.dpad_right && intakeAction != "RETRACT") {
+        if (opmode.gamepad1.a && opmode.gamepad1.dpad_right && intakeAction != "RETRACT") {
             intakeAction = "RETRACT";
             intakeTimer.reset();
 
             // Extend fully
-        } else if (gamepad1.a && gamepad1.dpad_left && intakeAction != "EXTEND") {
+        } else if (opmode.gamepad1.a && opmode.gamepad1.dpad_left && intakeAction != "EXTEND") {
             intakeAction = "EXTEND";
             intakeTimer.reset();
 
             // Extend halfway
-        } else if (gamepad1.a && gamepad1.dpad_up && intakeAction != "HALF") {
+        } else if (opmode.gamepad1.a && opmode.gamepad1.dpad_up && intakeAction != "HALF") {
             intakeAction = "HALF";
             intakeTimer.reset();
 
             // Tilt down to pick up sample
-        } else if (gamepad1.a && gamepad1.dpad_down && intakeAction != "ZERO") {
+        } else if (opmode.gamepad1.a && opmode.gamepad1.dpad_down && intakeAction != "ZERO") {
             intakeAction = "ZERO";
             intakeTimer.reset();
         }

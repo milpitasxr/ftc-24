@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -24,9 +26,10 @@ public class Drivetrain {
     double pitch;
     double integralSum = 0;
     double lastError = 0;
-    double Kp = 0.0;
+    double Kp = 1;
     double Ki = 0;
-    double Kf = 0;
+    double Kd = 0;
+    double targetAngle = 0;
 
     ElapsedTime timer;
 
@@ -41,12 +44,13 @@ public class Drivetrain {
         timer = new ElapsedTime();
 
         SetupIMU();
+
     }
 
     public void StraferChassis(double theta, double power) {
         double turn = IMUTurning();
         opmode.telemetry.addData("turn", turn);
-        //double turn = 0;
+        turn = 0;
         double sin = Math.sin(theta - Math.PI / 4);
         double cos = Math.cos(theta - Math.PI / 4);
 
@@ -79,8 +83,8 @@ public class Drivetrain {
         imu = opmode.hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+                        RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                        RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD
                 )
         );
         imu.initialize(parameters);
@@ -90,25 +94,24 @@ public class Drivetrain {
 //      Current rotation of the robot
         angles = imu.getRobotYawPitchRollAngles();
         heading = angles.getYaw() * (Math.PI / 180);
+        opmode.telemetry.addData("Heading in degrees", heading * (180 / Math.PI));
 //      Input on the gamepad's right joystick
         double x = opmode.gamepad1.right_stick_x;
         double y = opmode.gamepad1.right_stick_y;
-
         double right_stick_angle = Math.atan2(y, x);
+        if (Math.sqrt(x*x + y*y) > 0.5){
+            targetAngle = right_stick_angle;
+        }
+        opmode.telemetry.addData("targetAngle", targetAngle);
+        opmode.telemetry.addData("heading", heading);
 
         double turn = PID(right_stick_angle, heading);
-        opmode.telemetry.addData("firstturn", heading);
-        if (turn < -1) {
-            turn = -1;
-        } else if (turn > 1) {
-            turn = 1;
-        }
         return turn;
     }
 
     public double PID(double reference, double state) {
         double error = angleWrap(reference - state);
-        opmode.telemetry.addData("sldj", error);
+        opmode.telemetry.addData("error", error);
 //        telemetry.addData("Error:",error);
         integralSum += error * timer.seconds();
         double derivative = (error - lastError) / timer.seconds();
@@ -116,8 +119,7 @@ public class Drivetrain {
 
         timer.reset();
 
-        double turn;
-        turn = (error * Kp) + (derivative * Kp) + (integralSum * Ki) + (reference * Kf);
+        double turn = (error * Kp) + (integralSum * Ki) + (lastError * Kd);
         return turn;
     }
 
