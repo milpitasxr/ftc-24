@@ -1,15 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 //import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
+@Config
 public class Vertical {
 
     double TICKS_PER_REVOLUTION = 751.8;
@@ -22,15 +20,34 @@ public class Vertical {
     Servo clawrotate;
     DcMotor leftLift;
     DcMotor rightLift;
-    ElapsedTime vTimer;
-    String vAction;
-    boolean clawStatus;
+
+    ElapsedTime timer;
+    String action;
+
+    public static double RELEASE_CLAW = 0;
+    public static double TIGHT_CLAW = 1;
+    public static double LOOSE_CLAW = 0.5;
+
+    public static double UPPER_LIFT = 6;
+    public static double LOWER_LIFT = 2;
+    public static double SCORE_CLAW_JOINT = 0.5;
+    public static double SCORE_ARM = 0.7;
+
+    public static double RETRACT_ARM = 0.02;//from reference of right arm
+    public static double RETRACT_CLAW_JOINT = 0;
+
+    public static double SPECIMEN_ARM = 0.2;
+    public static double SPECIMEN_CLAW_JOINT = 0.5;
+    public static double TOP_RUNG_LIFT = 4;
+    public static double LOW_RUNG_LIFT = 1;
+
+    public static double HOOK_ARM = 0.15;
+    public static double HOOK_CLAW_JOINT = 0.5;
 
     public Vertical(OpMode op) {
         opmode = op;
-        vTimer = new ElapsedTime();
-        vAction = "RETRACT";
-        clawStatus = false;
+        timer = new ElapsedTime();
+        action = "RETRACT";
 
         armLeft = opmode.hardwareMap.get(Servo.class, "a1");
         armRight = opmode.hardwareMap.get(Servo.class, "a2");
@@ -42,39 +59,33 @@ public class Vertical {
         leftLift.setDirection(DcMotor.Direction.FORWARD);
         leftLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        rightLift.setDirection(DcMotor.Direction.REVERSE);
-        rightLift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightLift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void loop() {
-        changeVAction();
-        opmode.telemetry.addData("status", vAction);
 
         // LIFT ACTIONS
-        if (vAction == "RETRACT") {
+        if (action == "retract") {
             retract();
         }
-        if (vAction == "UPPER") {
-            upperBucket();
+        if (action == "scoreUpperBucket") {
+            scoreBucket(true);
         }
-        if (vAction == "LOWER") {
-            lowerBucket();
+        if (action == "scoreLowerBucket") {
+            scoreBucket(false);
         }
 
         //SPECIMEN ACTIONS
-        if (vAction == "TOP") {
-            top();
+        if (action == "placeTopRung") {
+            placeSpecimen(true);
         }
-        if (vAction == "DOWN") {
-            down();
+        if (action == "placeLowRung") {
+            placeSpecimen(false);
         }
-        if (vAction == "PICK") {
+        if (action == "pickSpecimen") {
             pickSpecimen();
         }
-        if (vAction == "PLACE") {
-            // WIP
+        if (action == "hookSpecimen") {
+            hookSpecimen();
         }
     }
 
@@ -86,114 +97,146 @@ public class Vertical {
     }
 
     private void retract(){
-        claw.setPosition(0.35);
-
-        if (vTimer.milliseconds() >= 5){
-            armLeft.setPosition(0.98);
-            armRight.setPosition(0.02);
+        if(timer.milliseconds() <= 5){
+            claw.setPosition(RELEASE_CLAW);//open claw
         }
 
-        if (vTimer.milliseconds() >= 15){
-            clawrotate.setPosition(0.48);
-        }
+        else if (timer.milliseconds() <=10){
+            claw.setPosition(RELEASE_CLAW);//open claw
 
-        if (vTimer.milliseconds() >= 20){
+            armLeft.setPosition(1-RETRACT_ARM);//lower arm
+            armRight.setPosition(RETRACT_ARM);
+            clawrotate.setPosition(RETRACT_CLAW_JOINT);//rotate into position
+        }
+        else{
+            claw.setPosition(RELEASE_CLAW);//open claw
+            armLeft.setPosition(1-RETRACT_ARM);//lower arm
+            armRight.setPosition(RETRACT_ARM);
+            clawrotate.setPosition(RETRACT_CLAW_JOINT);//rotate into position
+
             moveToPosition(leftLift, 0, 0.9);
             moveToPosition(rightLift, 0, 0.9);
         }
     }
 
-    private void upperBucket(){
-        claw.setPosition(1);
+    private void scoreBucket(boolean upper){
+        double liftTarget = LOWER_LIFT;
+        if(upper){liftTarget = UPPER_LIFT;}
 
-        if (vTimer.milliseconds() >= 50){
-            moveToPosition(leftLift, 6, 0.9);
-            moveToPosition(rightLift, 6, 0.9);
+        if(timer.milliseconds() <=50){
+            claw.setPosition(LOOSE_CLAW);//this should be loose grip
+
         }
 
-        if (vTimer.milliseconds() >= 80){
-            armLeft.setPosition(0.3);
-            armRight.setPosition(0.7);
-            clawrotate.setPosition(0.25);
-        }
-    }
+        else if (timer.milliseconds() <=80){
+            //start moving up
+            claw.setPosition(LOOSE_CLAW);//this should be loose grip
+            moveToPosition(leftLift, liftTarget, 0.5);
+            moveToPosition(rightLift, liftTarget, 0.5);
 
-    private void lowerBucket() {
-        claw.setPosition(1);
-
-        if (vTimer.milliseconds() >= 50){
-            moveToPosition(leftLift, 2, 0.9);
-            moveToPosition(rightLift, 2, 0.9);
         }
 
-        if (vTimer.milliseconds() >= 80){
-            armLeft.setPosition(0.3);
-            armRight.setPosition(0.7);
-            clawrotate.setPosition(0.25);
-        }
+        else{
+            moveToPosition(leftLift, liftTarget, 0.9);
+            moveToPosition(rightLift, liftTarget, 0.9);
 
-        if (opmode.gamepad1.b && opmode.gamepad1.left_bumper){
-            claw.setPosition(0.1);
+            claw.setPosition(TIGHT_CLAW);//this should now be hard stiff grip on the sampel
+            clawrotate.setPosition(SCORE_CLAW_JOINT); //this should keep the claw in the correct angle to score into the bucket
+            armLeft.setPosition(1-SCORE_ARM);
+            armRight.setPosition(SCORE_ARM);
+
         }
     }
 
-    private void top() {
-        claw.setPosition(1);
+    private void placeSpecimen(boolean top) {
 
-        if (vTimer.milliseconds() >= 40){
-            armLeft.setPosition(0.8);
-            armRight.setPosition(0.2);
-            clawrotate.setPosition(0.25);
+        if (timer.milliseconds() <= 40){
+            claw.setPosition(TIGHT_CLAW);//grip the specimen
+
+        }else{
+            claw.setPosition(TIGHT_CLAW);//grip the specimen
+            armLeft.setPosition(1-SPECIMEN_ARM);//move arm and claw to correct position
+            armRight.setPosition(SPECIMEN_ARM);
+            clawrotate.setPosition(SCORE_CLAW_JOINT);
+
+            if(top){
+                moveToPosition(leftLift, TOP_RUNG_LIFT, 0.9);
+                moveToPosition(rightLift, LOW_RUNG_LIFT, 0.9);
+            }else{
+                moveToPosition(leftLift, TOP_RUNG_LIFT, 0.9);
+                moveToPosition(rightLift, LOW_RUNG_LIFT, 0.9);
+            }
+
         }
-        // place specimen
-    }
-
-    private void down() {
-        claw.setPosition(1);
-
-        if (vTimer.milliseconds() >= 40){
-            armLeft.setPosition(0.8);
-            armRight.setPosition(0.2);
-            clawrotate.setPosition(0.25);
-        }
-        // place specimen
     }
 
     private void pickSpecimen() {
-        armRight.setPosition(1);
-        claw.setPosition(0.3);
+        if(timer.milliseconds()<=400){
+            claw.setPosition(RELEASE_CLAW);//now we open the claw
+            armRight.setPosition(0.9);
+            armLeft.setPosition(0.1);
+            //we need to first use both servos so we have enough torque adn power to actually rotate it 270 degrees from retract
+        }else{
+            armRight.setPosition(1);//now we set the arm fully down
+            claw.setPosition(RELEASE_CLAW);//now we open the claw
+        }
     }
 
-    private void release(){
+    private void hookSpecimen(){
+        if(timer.milliseconds()<=30) {
+            armLeft.setPosition(1-HOOK_ARM);//lowers the arm a bit to hook the specimen
+            armRight.setPosition(HOOK_ARM);//0.15
+            clawrotate.setPosition(HOOK_CLAW_JOINT);//0.5
+            claw.setPosition(TIGHT_CLAW);
+        }
+
+        if(timer.milliseconds() <=80){
+            armLeft.setPosition(1-HOOK_ARM);//lowers the arm a bit to hook the specimen
+            armRight.setPosition(HOOK_ARM);
+            clawrotate.setPosition(HOOK_CLAW_JOINT);
+            claw.setPosition(RELEASE_CLAW);//releases the claw so that we can later go back to retract
+        }else if(timer.milliseconds()<=90){
+
+            armLeft.setPosition(1-RETRACT_ARM);//lower arm and rotate claw into position
+            armRight.setPosition(RETRACT_ARM);
+            clawrotate.setPosition(RETRACT_CLAW_JOINT);
+            claw.setPosition(RELEASE_CLAW);
+        }
+    }
+
+    public void changeAction(String newAction){
+        if(newAction!=action){
+            action = newAction;
+            timer.reset();
+        }
 
     }
 
-    public void changeVAction() {
+    public void updateAction() {
         // LIFT ACTIONS
-        if (opmode.gamepad1.b && opmode.gamepad1.dpad_right && vAction != "RETRACT") {
-            vAction = "RETRACT";
-            vTimer.reset();
-        } else if (opmode.gamepad1.b && opmode.gamepad1.dpad_left && vAction != "LOWER") {
-            vAction = "LOWER";
-            vTimer.reset();
-        } else if (opmode.gamepad1.b && opmode.gamepad1.dpad_up && vAction != "UPPER") {
-            vAction = "UPPER";
-            vTimer.reset();
+        if (opmode.gamepad1.b && opmode.gamepad1.dpad_right) {
+            changeAction("retract");
+        } else if (opmode.gamepad1.b && opmode.gamepad1.dpad_left) {
+            changeAction("retract");
+
+        } else if (opmode.gamepad1.b && opmode.gamepad1.dpad_up) {
+            changeAction("retract");
+
         }
 
         // SPECIMEN ACTIONS
-        else if (opmode.gamepad1.y && opmode.gamepad1.dpad_up && vAction != "TOP") {
-            vAction = "TOP";
-            vTimer.reset();
-        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_left && vAction != "DOWN") {
-            vAction = "DOWN";
-            vTimer.reset();
-        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_down && vAction != "PICK") {
-            vAction = "PICK";
-            vTimer.reset();
-        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_right && vAction != "PLACE") {
-            vAction = "PLACE";
-            vTimer.reset();
+        else if (opmode.gamepad1.y && opmode.gamepad1.dpad_up) {
+            changeAction("retract");
+
+        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_left) {
+            changeAction("retract");
+
+        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_down) {
+            changeAction("retract");
+
+        } else if (opmode.gamepad1.y && opmode.gamepad1.dpad_right) {
+            changeAction("retract");
+
         }
     }
 }

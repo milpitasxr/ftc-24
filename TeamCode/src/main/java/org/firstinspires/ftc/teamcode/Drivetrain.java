@@ -1,6 +1,6 @@
+
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -8,8 +8,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.apache.commons.math3.geometry.Vector;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
+@Config
 public class Drivetrain {
     DcMotor motor1;
     DcMotor motor2;
@@ -22,14 +26,12 @@ public class Drivetrain {
     OpMode opmode;
 
     double heading;
-    double roll;
-    double pitch;
-    double integralSum = 0;
-    double lastError = 0;
-    double Kp = 1;
-    double Ki = 0;
-    double Kd = 0;
-    double targetAngle = 0;
+
+    public static double integralSum = 0;
+    public static double lastError = 0;
+    public static double Kp = 1.0;
+    public static double Ki = 0;
+    public static double Kd = 0;
 
     ElapsedTime timer;
 
@@ -44,13 +46,13 @@ public class Drivetrain {
         timer = new ElapsedTime();
 
         SetupIMU();
-
     }
 
-    public void StraferChassis(double theta, double power) {
-        double turn = IMUTurning();
-        opmode.telemetry.addData("turn", turn);
-        turn = 0;
+    public void StraferChassis() {
+        double turn = getTurn();
+        double theta = getDir();
+        double power = getPower();
+
         double sin = Math.sin(theta - Math.PI / 4);
         double cos = Math.cos(theta - Math.PI / 4);
 
@@ -90,20 +92,15 @@ public class Drivetrain {
         imu.initialize(parameters);
     }
 
-    public double IMUTurning() {
+    public double getTurn() {
 //      Current rotation of the robot
         angles = imu.getRobotYawPitchRollAngles();
-        heading = angles.getYaw() * (Math.PI / 180);
-        opmode.telemetry.addData("Heading in degrees", heading * (180 / Math.PI));
+        heading = angles.getYaw(AngleUnit.RADIANS);//from -180 to 180
+
 //      Input on the gamepad's right joystick
         double x = opmode.gamepad1.right_stick_x;
         double y = opmode.gamepad1.right_stick_y;
         double right_stick_angle = Math.atan2(y, x);
-        if (Math.sqrt(x*x + y*y) > 0.5){
-            targetAngle = right_stick_angle;
-        }
-        opmode.telemetry.addData("targetAngle", targetAngle);
-        opmode.telemetry.addData("heading", heading);
 
         double turn = PID(right_stick_angle, heading);
         return turn;
@@ -111,15 +108,14 @@ public class Drivetrain {
 
     public double PID(double reference, double state) {
         double error = angleWrap(reference - state);
-        opmode.telemetry.addData("error", error);
-//        telemetry.addData("Error:",error);
+        opmode.telemetry.addData("Error:",error);
         integralSum += error * timer.seconds();
         double derivative = (error - lastError) / timer.seconds();
         lastError = error;
 
         timer.reset();
 
-        double turn = (error * Kp) + (integralSum * Ki) + (lastError * Kd);
+        double turn = (error * Kp) + (derivative * Kd) + (integralSum * Ki);
         return turn;
     }
 
@@ -131,5 +127,23 @@ public class Drivetrain {
             radians += 2 * Math.PI;
         }
         return radians;
+    }
+
+    public double getDir(){
+        //my fucking goat https://www.youtube.com/watch?v=-HcDl_gyeMs
+        Vector2D ctrlDir = new Vector2D(opmode.gamepad1.left_stick_x, -opmode.gamepad1.left_stick_y);
+        double x = ctrlDir.getX();
+        double y = ctrlDir.getY();
+
+        double xPrime = (x*Math.cos(heading))+(y*Math.sin(heading));
+        double yPrime = -(x*Math.sin(heading))+(y*Math.cos(heading));
+
+        return Math.atan2(yPrime, xPrime);
+    }
+
+    public double getPower(){
+        double x = opmode.gamepad1.left_stick_x;
+        double y =  -opmode.gamepad1.left_stick_y;
+        return Math.sqrt((x * x) + (y * y));
     }
 }
